@@ -427,9 +427,9 @@ If you need:
 
 Feel free to reach out.
 
-- Email: parupin72@email.com
+- Email: parupin72@gmail.com
 <!-- - LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile) -->
-- GitHub: [@yourusername](https://github.com/leovis87)
+- GitHub: [@leovis87](https://github.com/leovis87)
 
 ---
 

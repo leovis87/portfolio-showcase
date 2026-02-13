@@ -339,9 +339,9 @@ StateGraph는 명시적 조건부 엣지를 통한 **결정론적 라우팅**을
 
 편하게 연락 주세요.
 
-- Email: parupin72@email.com
+- Email: parupin72@gmail.com
 <!-- - LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile) -->
-- GitHub: [@yourusername](https://github.com/leovis87)
+- GitHub: [@leovis87](https://github.com/leovis87)
 
 ---
 
