@@ -330,21 +330,21 @@ User: "Analyze the current state of AI chip market competition"
 
 ## Performance Optimization
 
-| Metric | Deep Research Only | With Smart Routing | Improvement |
-|--------|-------------------|-------------------|-------------|
-| Avg Response Time | 2-4 min | 5-10 sec (general) | **95% faster** |
-| API Calls per Query | 14+ (Tavily) | 2-3 (Serper) | **86% fewer** |
-| LLM Token Usage | High (all queries) | Proportional to need | **87% less** |
-| Cost per Simple Query | ~$0.05 | ~$0.003 | **94% cheaper** |
+| Metric | Before (All Deep Research) | After (Smart Routing) | Improvement |
+|--------|---------------------------|----------------------|-------------|
+| Avg Response Time | 2-4 min for every query | 1-5 sec for general chat | **95% faster** for simple queries |
+| Search API Calls | 14+ per query (Tavily) | 0-3 per query (Serper) | **~80% fewer** |
+| LLM Token Usage | Full pipeline every time | Proportional to complexity | Significant reduction |
 
 ### How?
 
-The **Gatekeeper Router** classifies incoming queries into 3 paths:
-1. **General Chat** — Simple questions get instant responses (no unnecessary search)
-2. **Quick Fact Check** — Factual queries get 2-3 search results + brief verification
-3. **Deep Research** — Complex analysis triggers the full 11-node pipeline
+The **Gatekeeper Router** classifies incoming queries into 2 primary paths:
+1. **General Chat** — Simple questions, fact checks, and searchable queries get instant responses. Search and quick fact-checking are handled inline within the chat node — no separate pipeline needed
+2. **Deep Research** — Only complex, multi-aspect analysis triggers the full 11-node pipeline
 
-This routing alone reduced average API costs by **86%** compared to running deep research on every query.
+Previously, every query went through the deep research pipeline regardless of complexity. Now, the **Search Checker** node further optimizes the general chat path by deciding whether to invoke web search, run a real-time tool (weather/translate/geocode), or answer directly from context.
+
+This 2-layer routing (Gatekeeper → Search Checker) eliminates unnecessary computation for the majority of queries.
 
 ---
 
@@ -427,11 +427,9 @@ If you need:
 
 Feel free to reach out.
 
-<!--
-- Email: your@email.com
-- LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
-- GitHub: [@yourusername](https://github.com/yourusername)
--->
+- Email: parupin72@email.com
+<!-- - LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile) -->
+- GitHub: [@yourusername](https://github.com/leovis87)
 
 ---
 
