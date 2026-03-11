@@ -4,7 +4,7 @@
 
 ### 高度なマルチモードAIアシスタント - ディープリサーチパイプライン搭載
 
-クエリの複雑さに応じて最適な応答戦略を自動選択するLLMエージェントシステム。即時チャットからマルチソースの深層リサーチレポートまで対応。
+クエリの複雑さに応じて最適な応答戦略を自動選択するLLMエージェントシステム。即時チャットから企業インテリジェンスを統合したマルチソース深層リサーチレポートまで対応。
 
 [**English**](./README.md) | [**日本語**](./README.ja.md) | [**한국어**](./README.ko.md)
 
@@ -12,7 +12,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.0-1C3C3C?logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
 [![React Native](https://img.shields.io/badge/React_Native-Expo-61DAFB?logo=react&logoColor=black)](https://reactnative.dev)
-[![Gemini](https://img.shields.io/badge/Gemini_2.5-Flash%20%7C%20Pro-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
+[![Gemini](https://img.shields.io/badge/Gemini_2.5-Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
 
 </div>
 
@@ -20,9 +20,11 @@
 
 ## 概要
 
-**AI Secretary**は、LangGraphのStateGraphアーキテクチャ（19ノード、条件付きエッジ）上に構築されたプロダクションレディなLLMエージェントシステムです。単純なチャットボットラッパーとは異なり、**多段階リサーチパイプライン**を実装しており、自動品質評価、自己修正型検索ループ、ファクトチェック機能を備えています。7種類の検索ソースから引用付きの構造化レポートを生成します。
+**AI Secretary**は、LangGraphのStateGraphアーキテクチャ（24ノード、条件付きエッジ）上に構築されたプロダクションレディなLLMエージェントシステムです。単純なチャットボットラッパーとは異なり、**多段階リサーチパイプライン**を実装しており、自動品質評価、自己修正型検索ループ、ファクトチェック機能を備えています。8種類の検索ソースから引用付きの構造化レポートを生成します。
 
-**ハイブリッドLLMルーティング**（クラウドGemini + ローカルOllama）によるプライバシーセキュリティモード、**エージェンティック自己修正ループ**（コード検証）、**動的HITL**（リサーチ戦略選択）、**韓国法令RAGシステム**（法制処Open API連携）を搭載しています。
+**ベンチマーク駆動型ハイブリッドLLMルーティング**（クラウドGemini + ローカルOllama）によるノードレベルのコスト最適化ルーティング、**自動クエリ分類器**がユーザー介入なしにリサーチプロファイルを選択、**BD（事業開発）リサーチモード**で多国籍企業インテリジェンス（DART/EDGAR/EDINET）を活用。**リサーチセッションキャッシュ**、**エージェンティック自己修正ループ**（コード検証）、**動的HITL**（リサーチ戦略選択）、**韓国法令RAGシステム**（法制処Open API連携）を搭載しています。
+
+**包括的テストスイート**（83以上のユニットテスト）でコアロジックを検証し、**ハイブリッドLLMベンチマークシステム**でデータ駆動型ルーティング判断を実行します。
 
 > **注記:** こちらはポートフォリオ展示用です。ソースコードはプライベートリポジトリで管理しています。
 
@@ -38,8 +40,12 @@
 - AI推奨フォローアップ質問による会話の継続性
 
 ### ディープリサーチ
+- **クエリ分類器**: 7種類のリサーチタイプ（market_entry, competitor_analysis, company_profileなど）をローカルLLMで自動分類 — クラウドコストゼロ
 - **動的HITL**: パイプライン進入前にLLMがクエリごとに2〜3つの分析戦略オプションを生成 → ユーザーが選択または自由入力
-- 7種類の検索ソースから**2-4分**で包括的な分析レポートを生成
+- **BDプロファイル**: 事業開発リサーチモード — 専用プロンプト、企業インテリジェンス注入、市場参入分析
+- **企業インテリジェンス**: DART（韓国）、EDGAR（米国）、EDINET（日本）の多国籍企業データ — 自動抽出、交差検証、コンテキスト注入
+- **リサーチキャッシュ**: セッション履歴追跡、URLレベルの信頼度キャッシュ、自動タグ付け、リサーチスナップショット
+- 8種類の検索ソースから**2-4分**で包括的な分析レポートを生成
 - 自己修正型品質ループ：Evaluatorがリサーチ品質をスコアリング、不足時はStrategistが再計画（最大3回）
 - 出版前のソース素材との自動ファクトチェック
 - セクション別ソースアコーディオン付きの構造化Markdownレポート
@@ -87,10 +93,12 @@ graph TD
         end
 
         subgraph DeepPath["ディープリサーチパイプライン"]
+            QC["Query Classifier<br/><i>リサーチタイプ自動分類</i>"]
+            CL["Cache Lookup<br/><i>セッション履歴</i>"]
             HITL["Dynamic HITL<br/><i>戦略選択</i>"]
             PL["Planner"]
             OL["Outliner"]
-            MN["Miner<br/><i>7ソース並列検索</i>"]
+            MN["Miner<br/><i>8ソース並列検索</i>"]
             SL["Selector<br/><i>信頼度スコアリング + 重複排除</i>"]
             RD["Deep Reader<br/><i>全文抽出</i>"]
             EV["Evaluator<br/><i>品質スコアリング</i>"]
@@ -98,7 +106,13 @@ graph TD
             WR["Writer"]
             FC["Fact Checker"]
             PB["Publisher"]
+            HS["History Saver<br/><i>キャッシュ永続化</i>"]
             LB["Librarian<br/><i>RAGストレージ</i>"]
+        end
+
+        subgraph BDPath["企業インテリジェンス (BDモード)"]
+            CE["Company Extractor<br/><i>DART / EDGAR / EDINET</i>"]
+            CV["Company Verifier<br/><i>交差検証</i>"]
         end
 
         subgraph CodePath["コードモード"]
@@ -109,11 +123,11 @@ graph TD
     end
 
     subgraph LLM["LLMレイヤー"]
-        GM["Gemini 2.5<br/>Flash / Pro"]
+        GM["Gemini 2.5<br/>Flash"]
         OL2["Ollama Local<br/>EXAONE 3.5 / Qwen 2.5"]
     end
 
-    subgraph Search["検索ソース (7種)"]
+    subgraph Search["検索ソース (8種)"]
         SR["Serper (Google)"]
         NV["Naver (韓国)"]
         TV["Tavily"]
@@ -125,9 +139,10 @@ graph TD
 
     UI -->|SSE Streaming| GK
     GK -->|一般| SC
-    GK -->|ディープリサーチ| HITL
+    GK -->|ディープリサーチ| QC
     GK -->|コード| CC
 
+    QC --> CL --> HITL
     HITL -->|"ユーザー戦略選択"| PL
 
     SC -->|"検索必要"| SS
@@ -140,7 +155,8 @@ graph TD
     EV -->|"品質OK"| WR
     EV -->|"追加データ必要"| ST
     ST -->|"再検索"| MN
-    WR --> FC --> PB --> LB
+    WR --> FC --> PB --> HS --> LB
+    PL -->|"BDプロファイル"| CE --> CV --> OL
 
     CC --> CF
     CF -->|"ISSUES_FOUND"| FIX
@@ -157,15 +173,20 @@ graph TD
 
 | 項目 | 設計判断 | 理由 |
 |------|---------|------|
-| **グラフエンジン** | LangGraph StateGraph（19ノード） | 決定論的ノードルーティング。ReActエージェントの予測不能なツール呼び出しより、複雑なパイプラインには明示的フロー制御が必要 |
+| **グラフエンジン** | LangGraph StateGraph（24ノード） | 決定論的ノードルーティング。ReActエージェントの予測不能なツール呼び出しより、複雑なパイプラインには明示的フロー制御が必要 |
+| **クエリ分類器** | ローカルLLM自動分類 | EXAONE 7Bで7種類のリサーチタイプを自動分類 — クラウドコストゼロ、フロントエンドオーバーライド対応 |
 | **品質ループ** | Evaluator → Strategist → Miner サイクル | 自己修正型リサーチ：ソース品質が閾値未満なら自動で再計画・再検索（最大3回） |
 | **コード自己修正** | Code Fact Check ↔ Code Fix ループ | エージェンティックループ：問題検出 → 自動修正 → 再検証（最大2回） |
 | **動的HITL** | LLM生成戦略オプション | クエリごとに2-3つの分析戦略 + ユーザー自由入力、Plannerに注入 |
-| **LLMルーティング** | `is_secure_mode` フラグ | プライバシー重視のクエリはローカルGPU（EXAONE 3.5）で処理、それ以外はGeminiで品質確保 |
+| **BDプロファイル** | 事業開発リサーチモード | 専用プロンプト + 企業インテリジェンス（DART/EDGAR/EDINET）市場参入分析 |
+| **企業インテリジェンス** | 多国籍企業DB | DART（韓国）、EDGAR（米国）、EDINET（日本） — 抽出 + 検証ノード、交差ソース検証 |
+| **リサーチキャッシュ** | SQLiteセッション + URLキャッシュ | セッション履歴追跡、URL信頼度キャッシュ、自動タグ付け、リサーチスナップショット |
+| **LLMルーティング** | ベンチマーク駆動型ハイブリッドルーティング | `is_secure` > `hybrid_mode` > `default(cloud)` 優先順位チェーン。ノードレベルのローカル/クラウド割り当て |
 | **LLMゲートウェイ** | 4つの統合ゲートウェイ関数 | 全ノードが`ask_gemini*()`経由 — `is_secure`パラメータ1つでシステム全体を切り替え |
 | **ハイブリッド検索** | ローカルキーワード抽出 + クラウドクエリ最適化 | セキュアモードではユーザーの原文がローカルマシンを離れない設計 |
 | **法令RAG** | ベクトル + BM25ハイブリッド + 条文単位チャンキング | 韓国法令検索 + プライバシーHITL（セキュア/クラウドモード選択） |
 | **チェックポイント** | AsyncSqliteSaver | サーバー再起動後もセッション復元可能 |
+| **テスト** | 83以上のpytestユニットテスト | 依存性モッキングによる純粋ロジックテスト — フォーマッター、モデル、キャッシュ、ベンチマーク、URL修正 |
 
 ---
 
@@ -176,8 +197,8 @@ graph TD
 |------|------|
 | **Python 3.11** | ランタイム |
 | **FastAPI** | 非同期REST API + SSEストリーミング |
-| **LangGraph 1.0** | StateGraphワークフロー管理（19ノード、条件付きエッジ） |
-| **Gemini 2.5 Flash/Pro** | メインクラウドLLM |
+| **LangGraph 1.0** | StateGraphワークフロー管理（24ノード、条件付きエッジ） |
+| **Gemini 2.5 Flash** | 統一クラウドLLM — ベンチマーク検証済み：Pro比-4%品質差、2倍速度 |
 | **Ollama + EXAONE 3.5** | ローカルLLM（韓国語最適化、7.8B） |
 | **Qwen 2.5 Coder** | ローカルコード生成モデル |
 
@@ -205,7 +226,8 @@ graph TD
 | **Naver検索** | 韓国ウェブ/ブログ/ニュース/百科 | 25,000回/日 |
 | **Tavily** | ニュース + 学術 | 1,000回/月 |
 | **DuckDuckGo** | 一般ウェブ | 無制限 |
-| **Semantic Scholar** | 学術論文 | 無制限 |
+| **Semantic Scholar** | 学術論文（引用データ） | 無制限 |
+| **arXiv** | プレプリント論文（CS/AI/数学） | 無制限 |
 | **GitHub** | コードリポジトリ | 5,000回/時 |
 | **法制処API** | 韓国法令（law.go.kr） | 無制限 |
 
@@ -213,19 +235,25 @@ graph TD
 
 ## モジュールアーキテクチャ
 
-**6,300行のモノリス**から**9つの専門モジュール**にリファクタリング:
+**6,300行のモノリス**から**14以上の専門モジュール**にリファクタリング:
 
 | モジュール | 行数 | 責務 |
 |-----------|------|------|
-| `config.py` | 60 | 環境変数、デプロイモード（local/cloud）、マルチバックエンド設定 |
-| `models.py` | 287 | 状態定義（動的HITL/コード自己修正フィールド含む）、スキーマ、ドメイン信頼度ティア |
-| `utils.py` | 523 | URL検証、信頼度スコアリング、テキスト処理 |
-| `llm_gateway.py` | 447 | LLM統合ゲートウェイ、Gemini/Ollamaルーティング、マルチバックエンド拡張点 |
-| `search.py` | 820 | 7ソースにまたがる11の検索関数 |
+| `config.py` | 89 | 環境変数、デプロイモード、ハイブリッドルーティング設定 |
+| `models.py` | 323 | 状態定義（HITL + BDプロファイル + クエリ分類器フィールド）、スキーマ、ドメイン信頼度ティア |
+| `utils.py` | 547 | URL検証、信頼度スコアリング、テキスト処理 |
+| `llm_gateway.py` | 485 | LLM統合ゲートウェイ、Gemini/Ollamaルーティング、ハイブリッドモード切替 |
+| `search.py` | 865 | 8ソースにまたがる11の検索関数 |
 | `tools.py` | 417 | 天気 / 翻訳 / ジオコーディングAPI |
-| `nodes_chat.py` | 1,218 | 一般チャット、コードモード、動的HITL、コード自己修正ノード |
-| `nodes_research.py` | 3,000 | ディープリサーチパイプライン（11ノード、全ノードゲートウェイ統合） |
-| `agent_mvp.py` | 254 | 再エクスポート + StateGraph組立（19ノード、条件付きエッジ） |
+| `nodes_chat.py` | 1,156 | 一般チャット、コードモード、クエリ分類器、HITLノード |
+| `nodes_research.py` | 3,401 | ディープリサーチパイプライン（11ノード、全ノードゲートウェイ統合） |
+| `nodes_company.py` | 491 | 企業抽出 + 検証ノード（BDプロファイル） |
+| `research_cache.py` | 798 | リサーチセッションキャッシュ、URL信頼度追跡、自動タグ付け |
+| `company_store.py` | 791 | 企業インテリジェンスDB + 多国籍コネクタ |
+| `company_connectors/` | 1,362 | DART（韓国）、EDGAR（米国）、EDINET（日本）、ウェブエンリッチメント |
+| `law_rag.py` | 1,440 | 韓国法令RAG（ベクトル + BM25ハイブリッド、条文単位チャンキング） |
+| `tag_enums.py` | 304 | リサーチタグ分類システム |
+| `agent_mvp.py` | 304 | 再エクスポート + StateGraph組立（24ノード、条件付きエッジ） |
 
 ### デュアルデプロイ設計
 
@@ -281,8 +309,8 @@ flowchart LR
 |------|------|
 | `ask_gemini()` | 一般テキスト応答 |
 | `ask_gemini_json()` | JSON構造化応答 |
-| `ask_gemini_high()` | Proモデル優先（Flashフォールバック） |
-| `ask_gemini_high_json()` | Pro + JSON |
+| `ask_gemini_high()` | Flash（旧Pro — ベンチマーク検証後切替） |
+| `ask_gemini_high_json()` | Flash + JSON |
 
 `is_secure`パラメータ1つでシステム全体のGemini（クラウド）↔ Ollama（ローカル）を切り替え。
 
@@ -295,6 +323,66 @@ flowchart LR
 3. ユーザーが選択：セキュアモード（ローカルLLM）またはクラウドモード（Gemini）
 4. RAG検索はローカルで実行 → 法的コンテキストを注入
 5. 条文単位の引用 + 免責事項付きの最終回答を生成
+
+### 5. クエリ分類器 — 自動リサーチプロファイリング
+
+ディープリサーチ開始前に、ローカルLLMがクエリを7種類のリサーチタイプの1つに自動分類：
+
+| リサーチタイプ | 説明 |
+|-------------|------|
+| `market_entry` | 新市場参入の実現可能性分析 |
+| `competitor_analysis` | 競合環境の比較分析 |
+| `company_profile` | 単一企業の深掘り分析 |
+| `market_size` | 市場規模と成長予測 |
+| `partnership` | パートナーシップ/M&A機会評価 |
+| `trend_analysis` | 業界トレンドと技術分析 |
+| `general_research` | オープンリサーチ（デフォルト） |
+
+- **EXAONE 7B**（ローカル）使用 — 分類にクラウドコストゼロ
+- フロントエンドオーバーライド対応：ユーザーが手動でプロファイルを選択した場合、分類器をバイパス
+- 分類結果が適切な**プロンプトプロファイル**を選択（例：BD リサーチ時に`bd_generic`）
+
+### 6. 企業インテリジェンス — 多国籍データパイプライン
+
+BDプロファイルリサーチで企業データを自動抽出・検証：
+
+```mermaid
+flowchart LR
+    PL["Planner"] -->|"BDプロファイル"| CE["Company Extractor"]
+    CE -->|"クエリから抽出"| DB[("企業DB<br/>DART / EDGAR / EDINET")]
+    DB --> CV["Company Verifier"]
+    CV -->|"検証済みコンテキスト"| WR["Writer"]
+```
+
+- **Company Extractor**: クエリから企業名を識別 → DART（韓国）、EDGAR（米国）、EDINET（日本）を照会
+- **Company Verifier**: 複数ソースの交差検証、データ品質スコアを割り当て
+- **Writer統合**: 検証済み企業コンテキスト（売上、資金調達、製品）をレポート生成に注入
+
+### 7. リサーチキャッシュ & セッション履歴
+
+リサーチセッションが再利用と追跡のために永続化：
+
+- **セッションキャッシュ**: 各リサーチ実行でトピック、モード、プロファイル、ステータスを含むセッション作成
+- **URL信頼度キャッシュ**: クロールされたURLのドメイン、信頼度スコア、タグ、HTTPステータスをキャッシュ
+- **自動タグ付け**: 3段階タグシステムでソースを分類（Official/Academic/News/Blogなど）
+- **リサーチスナップショット**: 同一トピックの反復リサーチで変化検出をサポート
+
+### 8. ベンチマーク駆動型ハイブリッドLLMルーティング
+
+ベンチマークシステムがタスクタイプごとにローカル vs クラウドLLMのパフォーマンスを測定し、データ駆動型ルーティング判断を実現：
+
+```
+優先順位: is_secure_mode > hybrid_mode > default(cloud)
+
+ハイブリッドノードルーティング:
+  _classify_query        → local (EXAONE)
+  _generate_search_query → local
+  search_checker         → local
+  generate_followup      → local
+  その他全て              → cloud (Gemini)
+```
+
+ベンチマークスイート（`benchmark_hybrid.py`）がJSONパース、クエリ分類、検索クエリ生成、検索チェック、フォローアップ生成を評価し、ルーティング判断に反映します。
 
 ---
 
@@ -339,7 +427,7 @@ flowchart LR
 
 ### LangGraph StateGraphをReAct Agentの代わりに選択した理由
 
-ReActエージェントはツールを動的に選択する強みがありますが、複雑な多段階ワークフローでは**予測不能**です。19ノードのワークフローに必要なもの：
+ReActエージェントはツールを動的に選択する強みがありますが、複雑な多段階ワークフローでは**予測不能**です。24ノードのワークフローに必要なもの：
 - 保証された実行順序（検索 → 評価 → 執筆）
 - リトライロジックを含む条件分岐（Evaluator → Strategist → Miner、最大3回）
 - エージェンティックループ：コード自己修正（code_fact_check ↔ code_fix、最大2回）
@@ -348,7 +436,7 @@ ReActエージェントはツールを動的に選択する強みがあります
 
 StateGraphは明示的な条件付きエッジによる**決定論的ルーティング**を提供し、パイプラインのデバッグと再現を可能にします。
 
-### 7ソースハイブリッド検索を選択した理由
+### 8ソースハイブリッド検索を選択した理由
 
 単一の検索APIでは全てのニーズを満たせません：
 - **Serper**（Google）：最高の汎用カバレッジ、無料枠制限あり
@@ -366,6 +454,32 @@ StateGraphは明示的な条件付きエッジによる**決定論的ルーテ�
 - 単一ファイルバックアップとマイグレーション
 - <100Kドキュメントの規模でNumPyコサイン類似度が十分高速
 - クラウドデプロイコストを大幅削減
+
+---
+
+## テスト
+
+LLM依存性なしにコアロジックを検証する包括的テストスイート：
+
+```
+tests/
+├── conftest.py              # 重い依存性のモックファクトリ（30以上のモジュール）
+├── test_utils.py            # clean_text, parse_json, trust_score（17テスト）
+├── test_models.py           # Pydanticモデル検証（7テスト）
+├── test_fix_reference.py    # URL参照修正（8テスト）
+├── test_formatters.py       # 企業/セッションフォーマッター（12テスト）
+├── test_benchmark_evals.py  # ベンチマーク評価関数（23テスト）
+└── test_research_cache.py   # SQLiteキャッシュCRUD + セッション（10テスト）
+```
+
+**83以上のテスト**が**1秒未満**で通過し、以下をカバー：
+- 純粋ユーティリティ関数（テキストクリーニング、JSONパース、信頼度スコアリング）
+- Pydanticモデル検証（エッジケース含む）
+- ディープリサーチURL参照修正
+- リサーチキャッシュSQLite統合（`tmp_path`フィクスチャ使用）
+- ベンチマーク評価スコアリング関数
+
+モック戦略は`types.ModuleType`に`__path__`、`__spec__`、`__package__`属性を設定し、30以上の重い依存性（LangChain、LangGraph、Google AI、PyTorchなど）に対してPythonインポートシステムを満たし、純粋ビジネスロジックの高速で隔離されたテストを可能にします。
 
 ---
 

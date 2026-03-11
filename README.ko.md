@@ -4,7 +4,7 @@
 
 ### 지능형 멀티모드 AI 비서 - 딥리서치 파이프라인 탑재
 
-질문의 복잡도에 따라 최적의 응답 전략을 자동 선택하는 LLM 에이전트 시스템. 즉시 채팅부터 멀티소스 심층 분석 리포트까지.
+질문의 복잡도에 따라 최적의 응답 전략을 자동 선택하는 LLM 에이전트 시스템. 즉시 채팅부터 기업 인텔리전스가 결합된 멀티소스 심층 분석 리포트까지.
 
 [**English**](./README.md) | [**日本語**](./README.ja.md) | [**한국어**](./README.ko.md)
 
@@ -12,7 +12,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.128-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![LangGraph](https://img.shields.io/badge/LangGraph-1.0-1C3C3C?logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
 [![React Native](https://img.shields.io/badge/React_Native-Expo-61DAFB?logo=react&logoColor=black)](https://reactnative.dev)
-[![Gemini](https://img.shields.io/badge/Gemini_2.5-Flash%20%7C%20Pro-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
+[![Gemini](https://img.shields.io/badge/Gemini_2.5-Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
 
 </div>
 
@@ -20,9 +20,11 @@
 
 ## 개요
 
-**AI Secretary**는 LangGraph StateGraph 아키텍처(19노드, 조건부 에지) 기반의 프로덕션 레벨 LLM 에이전트 시스템입니다. 단순한 챗봇 래퍼가 아닌, **다단계 리서치 파이프라인**을 구현하여 자동 품질 평가, 자기 수정 검색 루프, 팩트체크 기능을 갖추고 있습니다. 7개 검색 소스에서 인용 출처가 포함된 구조화된 리포트를 생성합니다.
+**AI Secretary**는 LangGraph StateGraph 아키텍처(24노드, 조건부 에지) 기반의 프로덕션 레벨 LLM 에이전트 시스템입니다. 단순한 챗봇 래퍼가 아닌, **다단계 리서치 파이프라인**을 구현하여 자동 품질 평가, 자기 수정 검색 루프, 팩트체크 기능을 갖추고 있습니다. 8개 검색 소스에서 인용 출처가 포함된 구조화된 리포트를 생성합니다.
 
-**하이브리드 LLM 라우팅**(클라우드 Gemini + 로컬 Ollama)으로 프라이버시 보안 모드를 제공하고, **에이전틱 자기수정 루프**(코드 검증), **동적 HITL**(리서치 전략 선택), **한국법 RAG 시스템**(법제처 Open API 연동)을 탑재했습니다.
+**벤치마크 기반 하이브리드 LLM 라우팅**(클라우드 Gemini + 로컬 Ollama)으로 노드 단위 비용 최적화 라우팅을 제공하고, **자동 질의 분류기**가 사용자 개입 없이 리서치 프로필을 선택하며, **BD(사업개발) 리서치 모드**에서 다국적 기업 인텔리전스(DART/EDGAR/EDINET)를 활용합니다. **리서치 세션 캐시**, **에이전틱 자기수정 루프**(코드 검증), **동적 HITL**(리서치 전략 선택), **한국법 RAG 시스템**(법제처 Open API 연동)을 탑재했습니다.
+
+**포괄적 테스트 스위트**(83+ 유닛 테스트)로 핵심 로직을 검증하며, **하이브리드 LLM 벤치마크 시스템**으로 데이터 기반 라우팅 결정을 수행합니다.
 
 > **참고:** 본 레포지토리는 포트폴리오 쇼케이스입니다. 소스 코드는 프라이빗 레포지토리에서 관리됩니다.
 
@@ -38,8 +40,12 @@
 - AI 추천 후속 질문으로 대화 지속성 확보
 
 ### 딥리서치
+- **질의 분류기**: 7가지 리서치 유형(market_entry, competitor_analysis, company_profile 등)을 로컬 LLM으로 자동 분류 — 클라우드 비용 제로
 - **동적 HITL**: 파이프라인 진입 전 LLM이 질문별 2~3개 분석 전략 옵션 생성 → 사용자가 선택하거나 직접 입력
-- 7개 검색 소스에서 **2-4분** 내 종합 분석 리포트 생성
+- **BD 프로필**: 사업개발 리서치 모드 — 특화 프롬프트, 기업 인텔리전스 주입, 시장 진입 분석
+- **기업 인텔리전스**: DART(한국), EDGAR(미국), EDINET(일본) 다국적 기업 데이터 — 자동 추출, 교차 검증, 컨텍스트 주입
+- **리서치 캐시**: 세션 히스토리 추적, URL 신뢰도 캐싱, 자동 태깅, 리서치 스냅샷
+- 8개 검색 소스에서 **2-4분** 내 종합 분석 리포트 생성
 - 자기 수정 품질 루프: Evaluator가 품질 평가 → 미달 시 Strategist가 재계획 (최대 3회)
 - 출판 전 소스 자료 대비 자동 팩트체크
 - 섹션별 출처 아코디언이 포함된 구조화 마크다운 리포트
@@ -87,10 +93,12 @@ graph TD
         end
 
         subgraph DeepPath["딥리서치 파이프라인"]
+            QC["Query Classifier<br/><i>리서치 유형 자동 분류</i>"]
+            CL["Cache Lookup<br/><i>세션 히스토리</i>"]
             HITL["Dynamic HITL<br/><i>전략 선택</i>"]
             PL["Planner"]
             OL["Outliner"]
-            MN["Miner<br/><i>7소스 병렬 검색</i>"]
+            MN["Miner<br/><i>8소스 병렬 검색</i>"]
             SL["Selector<br/><i>신뢰도 스코어링 + 중복제거</i>"]
             RD["Deep Reader<br/><i>전문 추출</i>"]
             EV["Evaluator<br/><i>품질 평가</i>"]
@@ -98,7 +106,13 @@ graph TD
             WR["Writer"]
             FC["Fact Checker"]
             PB["Publisher"]
+            HS["History Saver<br/><i>캐시 저장</i>"]
             LB["Librarian<br/><i>RAG 저장</i>"]
+        end
+
+        subgraph BDPath["기업 인텔리전스 (BD 모드)"]
+            CE["Company Extractor<br/><i>DART / EDGAR / EDINET</i>"]
+            CV["Company Verifier<br/><i>교차 검증</i>"]
         end
 
         subgraph CodePath["코드 모드"]
@@ -109,7 +123,7 @@ graph TD
     end
 
     subgraph LLM["LLM 레이어"]
-        GM["Gemini 2.5<br/>Flash / Pro"]
+        GM["Gemini 2.5<br/>Flash"]
         OL2["Ollama Local<br/>EXAONE 3.5 / Qwen 2.5"]
     end
 
@@ -125,9 +139,10 @@ graph TD
 
     UI -->|SSE 스트리밍| GK
     GK -->|일반| SC
-    GK -->|딥리서치| HITL
+    GK -->|딥리서치| QC
     GK -->|코드| CC
 
+    QC --> CL --> HITL
     HITL -->|"사용자 전략 선택"| PL
 
     SC -->|"검색 필요"| SS
@@ -140,7 +155,8 @@ graph TD
     EV -->|"품질 OK"| WR
     EV -->|"추가 데이터 필요"| ST
     ST -->|"재검색"| MN
-    WR --> FC --> PB --> LB
+    WR --> FC --> PB --> HS --> LB
+    PL -->|"BD 프로필"| CE --> CV --> OL
 
     CC --> CF
     CF -->|"ISSUES_FOUND"| FIX
@@ -157,15 +173,20 @@ graph TD
 
 | 항목 | 설계 결정 | 이유 |
 |------|---------|------|
-| **그래프 엔진** | LangGraph StateGraph (19노드) | 결정론적 노드 라우팅. ReAct 에이전트의 예측 불가능한 도구 호출 대비, 복잡한 파이프라인에는 명시적 플로우 제어 필수 |
+| **그래프 엔진** | LangGraph StateGraph (24노드) | 결정론적 노드 라우팅. ReAct 에이전트의 예측 불가능한 도구 호출 대비, 복잡한 파이프라인에는 명시적 플로우 제어 필수 |
+| **질의 분류기** | 로컬 LLM 자동 분류 | EXAONE 7B로 7가지 리서치 유형 자동 분류 — 클라우드 비용 제로, 프론트엔드 오버라이드 지원 |
 | **품질 루프** | Evaluator → Strategist → Miner 사이클 | 자기 수정형 리서치: 소스 품질 미달 시 자동 재계획·재검색 (최대 3회) |
 | **코드 자기수정** | Code Fact Check ↔ Code Fix 루프 | 에이전틱 루프: 문제 감지 → 자동 수정 → 재검증 (최대 2회) |
 | **동적 HITL** | LLM 생성 전략 옵션 | 질문별 2-3개 분석 전략 + 사용자 자유 입력, Planner에 주입 |
-| **LLM 라우팅** | `is_secure_mode` 플래그 | 프라이버시가 중요한 질의는 로컬 GPU(EXAONE 3.5)에서 처리, 나머지는 Gemini |
+| **BD 프로필** | 사업개발 리서치 모드 | 특화 프롬프트 + 기업 인텔리전스 (DART/EDGAR/EDINET) 시장 진입 분석 |
+| **기업 인텔리전스** | 다국적 기업 DB | DART(한국), EDGAR(미국), EDINET(일본) — 추출 + 검증 노드, 교차 소스 검증 |
+| **리서치 캐시** | SQLite 세션 + URL 캐시 | 세션 히스토리 추적, URL 신뢰도 캐싱, 자동 태깅, 리서치 스냅샷 |
+| **LLM 라우팅** | 벤치마크 기반 하이브리드 라우팅 | `is_secure` > `hybrid_mode` > `default(cloud)` 우선순위 체인. 노드 단위 로컬/클라우드 할당 |
 | **LLM Gateway** | 4개 통합 게이트웨이 함수 | 모든 노드가 `ask_gemini*()` 경유 — `is_secure` 파라미터 하나로 전체 시스템 전환 |
 | **하이브리드 검색** | 로컬 키워드 추출 + 클라우드 쿼리 최적화 | 보안 모드에서 사용자 원문은 로컬 머신을 벗어나지 않는 설계 |
 | **법률 RAG** | 벡터 + BM25 하이브리드 + 조문 단위 청킹 | 한국법 검색 + 프라이버시 HITL (보안/클라우드 모드 선택) |
 | **체크포인팅** | AsyncSqliteSaver | 서버 재시작 후에도 세션 복원 가능 |
+| **테스트** | 83+ pytest 유닛 테스트 | 의존성 모킹을 통한 순수 로직 테스트 — 포맷터, 모델, 캐시, 벤치마크, URL 보정 |
 
 ---
 
@@ -176,8 +197,8 @@ graph TD
 |------|------|
 | **Python 3.11** | 런타임 |
 | **FastAPI** | 비동기 REST API + SSE 스트리밍 |
-| **LangGraph 1.0** | StateGraph 워크플로우 오케스트레이션 (19노드, 조건부 에지) |
-| **Gemini 2.5 Flash/Pro** | 메인 클라우드 LLM |
+| **LangGraph 1.0** | StateGraph 워크플로우 오케스트레이션 (24노드, 조건부 에지) |
+| **Gemini 2.5 Flash** | 단일 클라우드 LLM — 벤치마크 검증 완료: Pro 대비 -4% 품질 차, 2배 속도 |
 | **Ollama + EXAONE 3.5** | 로컬 LLM (한국어 최적화, 7.8B) |
 | **Qwen 2.5 Coder** | 로컬 코드 생성 모델 |
 
@@ -205,7 +226,8 @@ graph TD
 | **네이버 검색** | 한국 웹/블로그/뉴스/백과 | 25,000회/일 |
 | **Tavily** | 뉴스 + 학술 | 1,000회/월 |
 | **DuckDuckGo** | 일반 웹 | 무제한 |
-| **Semantic Scholar** | 학술 논문 | 무제한 |
+| **Semantic Scholar** | 학술 논문 (인용 데이터) | 무제한 |
+| **arXiv** | 프리프린트 논문 (CS/AI/수학) | 무제한 |
 | **GitHub** | 코드 저장소 | 5,000회/시 |
 | **법제처 API** | 한국 법령 (law.go.kr) | 무제한 |
 
@@ -213,19 +235,25 @@ graph TD
 
 ## 모듈 아키텍처
 
-**6,300줄 모놀리스**에서 **9개 전문 모듈**로 리팩토링:
+**6,300줄 모놀리스**에서 **14개 이상의 전문 모듈**로 리팩토링:
 
 | 모듈 | 줄 수 | 책임 |
 |------|------|------|
-| `config.py` | 60 | 환경변수, 배포 모드 (local/cloud), 멀티백엔드 설정 |
-| `models.py` | 287 | 상태 정의 (동적 HITL/코드 자기수정 필드 포함), 스키마, 도메인 신뢰도 티어 |
-| `utils.py` | 523 | URL 검증, 신뢰도 스코어링, 텍스트 처리 |
-| `llm_gateway.py` | 447 | LLM 통합 게이트웨이, Gemini/Ollama 라우팅, 멀티백엔드 확장점 |
-| `search.py` | 820 | 7개 소스에 걸친 11개 검색 함수 |
+| `config.py` | 89 | 환경변수, 배포 모드, 하이브리드 라우팅 설정 |
+| `models.py` | 323 | 상태 정의 (HITL + BD 프로필 + 질의 분류기 필드), 스키마, 도메인 신뢰도 티어 |
+| `utils.py` | 547 | URL 검증, 신뢰도 스코어링, 텍스트 처리 |
+| `llm_gateway.py` | 485 | LLM 통합 게이트웨이, Gemini/Ollama 라우팅, 하이브리드 모드 전환 |
+| `search.py` | 865 | 8개 소스에 걸친 11개 검색 함수 |
 | `tools.py` | 417 | 날씨 / 번역 / 지오코딩 API |
-| `nodes_chat.py` | 1,218 | 일반 채팅, 코드 모드, 동적 HITL, 코드 자기수정 노드 |
-| `nodes_research.py` | 3,000 | 딥리서치 파이프라인 (11개 노드, 전 노드 게이트웨이 통합) |
-| `agent_mvp.py` | 254 | 재수출 + StateGraph 조립 (19노드, 조건부 에지) |
+| `nodes_chat.py` | 1,156 | 일반 채팅, 코드 모드, 질의 분류기, HITL 노드 |
+| `nodes_research.py` | 3,401 | 딥리서치 파이프라인 (11개 노드, 전 노드 게이트웨이 통합) |
+| `nodes_company.py` | 491 | 기업 추출 + 검증 노드 (BD 프로필) |
+| `research_cache.py` | 798 | 리서치 세션 캐시, URL 신뢰도 추적, 자동 태깅 |
+| `company_store.py` | 791 | 기업 인텔리전스 DB + 다국적 커넥터 |
+| `company_connectors/` | 1,362 | DART(한국), EDGAR(미국), EDINET(일본), 웹 보강 |
+| `law_rag.py` | 1,440 | 한국법 RAG (벡터 + BM25 하이브리드, 조문 단위 청킹) |
+| `tag_enums.py` | 304 | 리서치 태그 분류 시스템 |
+| `agent_mvp.py` | 304 | 재수출 + StateGraph 조립 (24노드, 조건부 에지) |
 
 ### 듀얼 배포 설계
 
@@ -281,8 +309,8 @@ flowchart LR
 |------|------|
 | `ask_gemini()` | 일반 텍스트 응답 |
 | `ask_gemini_json()` | JSON 구조화 응답 |
-| `ask_gemini_high()` | Pro 모델 우선 (Flash 폴백) |
-| `ask_gemini_high_json()` | Pro + JSON |
+| `ask_gemini_high()` | Flash (기존 Pro → 벤치마크 검증 후 전환) |
+| `ask_gemini_high_json()` | Flash + JSON |
 
 `is_secure` 파라미터 하나로 전체 시스템의 Gemini(클라우드) ↔ Ollama(로컬) 전환.
 
@@ -296,35 +324,112 @@ flowchart LR
 4. RAG 검색은 로컬에서 실행 → 법률 컨텍스트 주입
 5. 조문 단위 인용 + 면책 문구 포함 최종 답변 생성
 
+### 5. 질의 분류기 — 자동 리서치 프로파일링
+
+딥리서치 시작 전, 로컬 LLM이 질의를 7가지 리서치 유형 중 하나로 자동 분류:
+
+| 리서치 유형 | 설명 |
+|-----------|------|
+| `market_entry` | 신규 시장 진입 타당성 분석 |
+| `competitor_analysis` | 경쟁 환경 비교 분석 |
+| `company_profile` | 단일 기업 심층 분석 |
+| `market_size` | 시장 규모 및 성장 전망 |
+| `partnership` | 파트너십/M&A 기회 평가 |
+| `trend_analysis` | 산업 트렌드 및 기술 분석 |
+| `general_research` | 오픈 리서치 (기본값) |
+
+- **EXAONE 7B**(로컬) 사용 — 분류에 클라우드 비용 제로
+- 프론트엔드 오버라이드 지원: 사용자가 프로필을 수동 선택하면 분류기 바이패스
+- 분류 결과가 적절한 **프롬프트 프로필** 선택 (예: BD 리서치 시 `bd_generic`)
+
+### 6. 기업 인텔리전스 — 다국적 데이터 파이프라인
+
+BD 프로필 리서치에서 기업 데이터를 자동 추출 및 검증:
+
+```mermaid
+flowchart LR
+    PL["Planner"] -->|"BD 프로필"| CE["Company Extractor"]
+    CE -->|"질의에서 추출"| DB[("기업 DB<br/>DART / EDGAR / EDINET")]
+    DB --> CV["Company Verifier"]
+    CV -->|"검증된 컨텍스트"| WR["Writer"]
+```
+
+- **Company Extractor**: 질의에서 기업명 식별 → DART(한국), EDGAR(미국), EDINET(일본) 조회
+- **Company Verifier**: 다중 소스 교차 검증, 데이터 품질 점수 할당
+- **Writer 통합**: 검증된 기업 컨텍스트(매출, 투자, 제품)를 리포트 생성에 주입
+
+### 7. 리서치 캐시 & 세션 히스토리
+
+리서치 세션이 재사용 및 추적을 위해 영구 저장:
+
+- **세션 캐시**: 각 리서치 실행마다 주제, 모드, 프로필, 상태 포함 세션 생성
+- **URL 신뢰도 캐시**: 크롤링된 URL의 도메인, 신뢰도 점수, 태그, HTTP 상태 캐싱
+- **자동 태깅**: 3단계 태그 시스템으로 소스 분류 (Official/Academic/News/Blog 등)
+- **리서치 스냅샷**: 동일 주제 반복 리서치 시 변화 감지 지원
+
+### 8. 벤치마크 기반 하이브리드 LLM 라우팅
+
+벤치마크 시스템이 태스크 유형별 로컬 vs 클라우드 LLM 성능을 측정하여 데이터 기반 라우팅 결정:
+
+```
+우선순위: is_secure_mode > hybrid_mode > default(cloud)
+
+하이브리드 노드 라우팅:
+  _classify_query        → local (EXAONE)
+  _generate_search_query → local
+  search_checker         → local
+  generate_followup      → local
+  그 외 전부              → cloud (Gemini)
+```
+
+벤치마크 스위트(`benchmark_hybrid.py`)가 JSON 파싱, 질의 분류, 검색 쿼리 생성, 검색 체크, 후속 질문 생성을 평가하여 라우팅 결정에 반영합니다.
+
 ---
 
 ## 딥리서치 파이프라인 상세
 
-딥리서치 모드는 이 시스템의 핵심 차별점입니다. 하나의 리서치 질의가 11개 전문 노드를 거치는 과정:
+딥리서치 모드는 이 시스템의 핵심 차별점입니다. 하나의 리서치 질의가 전문 파이프라인을 거치는 과정:
 
 ```
 사용자: "AI 반도체 시장 경쟁 현황 분석해줘"
+ |
+ v
+[Query Classifier] - 질의를 리서치 유형으로 자동 분류 (예: "competitor_analysis")
+                   - 로컬 LLM (EXAONE 7B) 사용 — 클라우드 비용 제로
+                   - 프롬프트 프로필 선택 (default / bd_generic)
+ |
+ v
+[Cache Lookup] - 유사 과거 리서치 세션 히스토리 조회
+               - 캐시된 URL 신뢰도 점수 로드
  |
  v
 [Dynamic HITL] - LLM이 2-3개 분석 전략 옵션 생성
                - 사용자가 전략 선택 또는 직접 입력
  |
  v
-[1. Planner] - selected_option 읽어 리서치 방향 조정
+[1. Planner] - selected_option + research_type 읽어 방향 조정
              - 정제된 주제와 목표 구조 생성
+             - (BD 모드) Company Extractor로 먼저 라우팅
+ |
+ v
+[BD: Company Extractor] - 질의에서 기업명 추출
+                        - DART/EDGAR/EDINET에서 기업 데이터 조회
+[BD: Company Verifier]  - 데이터 교차 검증, 품질 점수 할당
+                        - 검증된 기업 컨텍스트를 state에 주입
  |
  v
 [2. Outliner] - 4-6개 섹션의 구조화된 목차 생성
               - 섹션별 최적화 검색 쿼리 생성
  |
  v
-[3. Miner] - 7개 소스 병렬 검색 (Serper + 네이버 + Tavily + ...)
+[3. Miner] - 8개 소스 병렬 검색 (Serper + 네이버 + Tavily + arXiv + ...)
            - 반복당 20-30개 원시 결과 수집
  |
  v
 [4. Selector] - 신뢰도 스코어링: 도메인 티어(T1/T2/T3) + 스니펫 관련성
               - URL 검증 (비동기 배치 HEAD 요청)
               - 중복 제거 + Top-K 선별
+              - 캐시된 URL 신뢰도 점수로 반복 리서치 가속
  |
  v
 [5. Deep Reader] - Crawl4AI를 통한 전문 추출
@@ -342,6 +447,7 @@ flowchart LR
  v
 [8. Writer] - 구조화된 마크다운 리포트 생성
             - 섹션별 출처 인용
+            - (BD 모드) 검증된 기업 데이터 통합
             - 독자 맞춤형 톤 (전문가 / 일반)
  |
  v
@@ -349,11 +455,16 @@ flowchart LR
                   - 근거 없는 서술 플래그 처리
  |
  v
-[10. Publisher] - 출처 아코디언이 포함된 최종 출력 포맷팅
-               - 후속 질문 추천 생성
+[10. Publisher] - 핵심 인사이트 요약 생성 (인포그래픽)
+               - 참고자료 URL을 클릭 가능한 마크다운 링크로 복원
+               - 최종 출력 구조 조합
  |
  v
-[11. Librarian] - 리서치 결과를 RAG 벡터 스토어에 저장
+[11. History Saver] - 세션 메타데이터 + URL 신뢰도 점수 영구 저장
+                    - 향후 리서치 캐시 히트 지원
+ |
+ v
+[12. Librarian] - 리서치 결과를 RAG 벡터 스토어에 저장
                - 향후 검색 및 교차 참조 지원
 ```
 
@@ -400,7 +511,7 @@ flowchart LR
 
 ### LangGraph StateGraph를 ReAct Agent 대신 선택한 이유
 
-ReAct 에이전트는 도구를 동적으로 선택하는 강점이 있지만, 복잡한 다단계 워크플로우에서는 **예측 불가능**합니다. 19노드 워크플로우에 필요한 것:
+ReAct 에이전트는 도구를 동적으로 선택하는 강점이 있지만, 복잡한 다단계 워크플로우에서는 **예측 불가능**합니다. 24노드 워크플로우에 필요한 것:
 - 보장된 실행 순서 (검색 → 평가 → 작성)
 - 조건부 분기 + 재시도 로직 (Evaluator → Strategist → Miner, 최대 3회)
 - 에이전틱 루프: 코드 자기수정 (code_fact_check ↔ code_fix, 최대 2회)
@@ -409,7 +520,7 @@ ReAct 에이전트는 도구를 동적으로 선택하는 강점이 있지만, �
 
 StateGraph는 명시적 조건부 엣지를 통한 **결정론적 라우팅**을 제공하여 파이프라인을 디버깅하고 재현할 수 있게 합니다.
 
-### 7개 소스 하이브리드 검색을 선택한 이유
+### 8개 소스 하이브리드 검색을 선택한 이유
 
 단일 검색 API로는 모든 요구사항을 충족할 수 없습니다:
 - **Serper** (Google): 최고의 범용 커버리지, 무료 한도 제한
@@ -427,6 +538,32 @@ StateGraph는 명시적 조건부 엣지를 통한 **결정론적 라우팅**을
 - 단일 파일 백업 및 마이그레이션
 - <100K 문서 규모에서 NumPy 코사인 유사도로 충분한 성능
 - 클라우드 배포 비용 대폭 절감
+
+---
+
+## 테스트
+
+LLM 의존성 없이 핵심 로직을 검증하는 포괄적 테스트 스위트:
+
+```
+tests/
+├── conftest.py              # 무거운 의존성 mock 팩토리 (30+ 모듈)
+├── test_utils.py            # clean_text, parse_json, trust_score (17개 테스트)
+├── test_models.py           # Pydantic 모델 검증 (7개 테스트)
+├── test_fix_reference.py    # URL 참조 보정 (8개 테스트)
+├── test_formatters.py       # 기업/세션 포맷터 (12개 테스트)
+├── test_benchmark_evals.py  # 벤치마크 평가 함수 (23개 테스트)
+└── test_research_cache.py   # SQLite 캐시 CRUD + 세션 (10개 테스트)
+```
+
+**83+ 테스트**가 **1초 미만**에 통과하며, 다음을 커버:
+- 순수 유틸리티 함수 (텍스트 클리닝, JSON 파싱, 신뢰도 스코어링)
+- Pydantic 모델 검증 (엣지 케이스 포함)
+- 딥리서치 URL 참조 보정
+- 리서치 캐시 SQLite 통합 (`tmp_path` 픽스처 사용)
+- 벤치마크 평가 스코어링 함수
+
+mock 전략은 `types.ModuleType`에 `__path__`, `__spec__`, `__package__` 속성을 설정하여 30+ 무거운 의존성(LangChain, LangGraph, Google AI, PyTorch 등)에 대해 Python import 시스템을 만족시키고, 순수 비즈니스 로직의 빠르고 격리된 테스트를 가능하게 합니다.
 
 ---
 

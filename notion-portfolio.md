@@ -5,14 +5,14 @@
 **시연 영상:** [https://youtu.be/X5ZZsArnIgI](https://youtu.be/X5ZZsArnIgI?si=ae8kjMtiSfXRFhZd)
 
 **Tech Stack:**
-`React Native` `TypeScript` `Python` `FastAPI` `LangGraph` `Google Gemini 2.5` `Ollama` `EXAONE 3.5` `Qwen 2.5 Coder` `sentence-transformers` `Faster-Whisper` `pyannote.audio` `EasyOCR` `Crawl4AI`
+`React Native` `TypeScript` `Python` `FastAPI` `LangGraph` `Google Gemini 2.5 Flash` `Ollama` `EXAONE 3.5` `Qwen 2.5 Coder` `sentence-transformers` `Faster-Whisper` `pyannote.audio` `EasyOCR` `Crawl4AI`
 
 ---
 
 ## 프로젝트 개요
 
 질문의 복잡도에 따라 **최적의 응답 전략을 자동 선택**하는 LLM 에이전트 시스템.
-단순 질문은 즉시 응답, 복잡한 질문은 6개 검색 소스에서 자동 리서치 → 팩트체크 → 출처 포함 보고서를 생성합니다.
+단순 질문은 즉시 응답, 복잡한 질문은 8개 검색 소스에서 자동 리서치 → 팩트체크 → 출처 포함 보고서를 생성합니다.
 
 ### 핵심 가치
 
@@ -26,8 +26,8 @@
 
 | 모드 | 설명 | 응답 시간 |
 |------|------|----------|
-| **일반 채팅** | 웹 검색 + 빠른 팩트체크 인라인 처리, RAG 문서 참조 | 1-5초 |
-| **딥리서치** | 11노드 파이프라인, 자동 품질 평가 + 재검색 루프 | 2-4분 |
+| **일반 채팅** | 웹 검색 + 빠른 팩트체크 인라인 처리, RAG 문서 참조, 법률 RAG | 1-5초 |
+| **딥리서치** | 14노드 파이프라인, 자동 품질 평가 + 재검색 루프, 기업 인텔리전스 | 2-4분 |
 | **코드** | 코드 생성 + 자동 검증 + 에이전틱 자기수정 루프 (최대 2회) | 5-30초 |
 | **회의** | 오디오 업로드 → 화자 분리 → 자동 요약 | 1-3분 |
 
@@ -41,9 +41,11 @@
 flowchart TD
     START(("사용자 입력")) --> GK{"Gatekeeper Router"}
     GK -->|일반| SC{"Search Checker"}
-    GK -->|딥리서치| HITL["Dynamic HITL Confirmation"]
+    GK -->|딥리서치| QC["Query Classifier"]
     GK -->|코드| CC["Code Chat"]
     GK -->|확인 필요| CONFIRM["Confirmation Node"]
+    QC --> CL["Cache Lookup"]
+    CL --> HITL["Dynamic HITL Confirmation"]
     HITL -->|사용자 전략 선택| PL["Planner"]
     SC -->|검색 필요| SS["Simple Search"]
     SC -->|도구 필요| TE["Tool Executor"]
@@ -58,13 +60,18 @@ flowchart TD
     CONFIRM --> END3(("END"))
 ```
 
-### 2. 딥리서치 파이프라인 (동적 HITL + 11노드)
+### 2. 딥리서치 파이프라인 (14노드)
 
 ```mermaid
 flowchart TD
-    HITL["Dynamic HITL"] -->|전략 선택 반영| PL["1. Planner"]
+    QC["Query Classifier"] --> CL["Cache Lookup"]
+    CL --> HITL["Dynamic HITL"]
+    HITL -->|전략 선택 반영| PL["1. Planner"]
     PL --> OL["2. Outliner"]
-    OL --> MN["3. Miner - 6소스 병렬 검색"]
+    PL -->|BD 프로필| CE["Company Extractor"]
+    CE --> CV["Company Verifier"]
+    CV --> OL
+    OL --> MN["3. Miner - 8소스 병렬 검색"]
     MN --> SL["4. Selector - 신뢰도 스코어링"]
     SL --> RD["5. Reader - 전문 추출"]
     RD --> EV{"6. Evaluator - 품질 평가"}
@@ -73,7 +80,8 @@ flowchart TD
     ST --> MN
     WR --> FC["9. Fact Checker"]
     FC --> PB["10. Publisher"]
-    PB --> LB["11. Librarian - RAG 저장"]
+    PB --> HS["11. History Saver"]
+    HS --> LB["12. Librarian - RAG 저장"]
     LB --> END(("END"))
 ```
 
@@ -89,7 +97,7 @@ flowchart TD
 ```mermaid
 flowchart LR
     Q["사용자 질의"] --> CHECK{"is_secure_mode?"}
-    CHECK -->|false| GEMINI["Gemini 2.5 Flash/Pro"]
+    CHECK -->|false| GEMINI["Gemini 2.5 Flash"]
     CHECK -->|true| LOCAL["EXAONE 3.5 7.8B"]
     LOCAL --> KW["키워드만 추출"]
     KW -->|키워드만 전송| OPT["Gemini 쿼리 최적화"]
@@ -102,7 +110,7 @@ flowchart LR
 
 ---
 
-## 검색 시스템 (6개 소스 통합)
+## 검색 시스템 (8개 소스 통합)
 
 | 소스 | 용도 | 무료 할당량 |
 |------|------|-----------|
@@ -110,8 +118,10 @@ flowchart LR
 | **네이버 검색** | 한국어 블로그/뉴스/백과 | 25,000회/일 |
 | **Tavily** | 뉴스 + 학술 (폴백) | 1,000회/월 |
 | **DuckDuckGo** | 범용 웹 (무제한 폴백) | 무제한 |
-| **Semantic Scholar** | 학술 논문 | 무제한 |
+| **Semantic Scholar** | 학술 논문 (인용 데이터) | 무제한 |
+| **arXiv** | 프리프린트 논문 (CS/AI/수학) | 무제한 |
 | **GitHub** | 코드 저장소 | 5,000회/시 |
+| **법제처 API** | 한국 법령 (law.go.kr) | 무제한 |
 
 Miner 노드가 질의 유형에 따라 관련 소스를 **병렬 검색** → Selector가 도메인 티어(T1/T2/T3) 기반 신뢰도 스코어링 + 중복 제거.
 
@@ -126,28 +136,42 @@ Miner 노드가 질의 유형에 따라 관련 소스를 **병렬 검색** → S
 | 리서치 결과 | 딥리서치 완료 후 자동 저장 |
 | 채팅 | 선택적 저장 |
 
-- 임베딩: sentence-transformers (all-MiniLM-L6-v2)
+- 임베딩: sentence-transformers (all-MiniLM-L6-v2 + ko-sroberta)
 - 저장: **SQLite + NumPy 코사인 유사도** (외부 벡터 DB 없이 자체 구현)
 - 인용: `[doc p.N]` 형식으로 페이지 수준 출처 추적
 - 숫자가 포함된 답변 → **정확 인용 프롬프트** 자동 적용 (환각 방지)
+
+### 법률 RAG
+
+- 법제처 국가법령정보센터 Open API (law.go.kr) 연동
+- 하이브리드 검색: 벡터 유사도 + BM25, Reciprocal Rank Fusion
+- 조(article) 단위 청킹 + `[법령명 제N조]` 인용 포맷
+- 프라이버시 HITL: 법률 질의 시 보안 모드(로컬) / 클라우드 모드 선택
+- 대상 법률 14개 (부동산 9개 + 보안/네트워크 5개)
 
 ---
 
 ## 모듈 아키텍처
 
-6,300줄 모놀리스 → **9개 모듈**로 리팩토링 (듀얼 배포 대응):
+6,300줄 모놀리스 → **14개 이상의 전문 모듈**로 리팩토링 (듀얼 배포 대응):
 
 | 모듈 | 줄 수 | 역할 |
 |------|------|------|
-| `config.py` | 60 | 환경변수, 배포 모드 (local/cloud), 멀티백엔드 설정 |
-| `models.py` | 287 | 상태 정의 (동적 HITL/코드 자기수정 필드 포함), 스키마, 도메인 티어 |
-| `utils.py` | 523 | URL 검증, 신뢰도 스코어링, 텍스트 처리 |
-| `llm_gateway.py` | 447 | LLM 통합 게이트웨이, Gemini/Ollama 라우팅, 멀티백엔드 확장점 |
-| `search.py` | 820 | 6개 소스 11개 검색 함수 |
+| `config.py` | 89 | 환경변수, 배포 모드, 하이브리드 라우팅 설정 |
+| `models.py` | 323 | 상태 정의 (HITL + BD 프로필 + 질의 분류기 필드), 스키마, 도메인 티어 |
+| `utils.py` | 547 | URL 검증, 신뢰도 스코어링, 텍스트 처리 |
+| `llm_gateway.py` | 485 | LLM 통합 게이트웨이, Gemini/Ollama 라우팅, 하이브리드 모드 전환 |
+| `search.py` | 865 | 8개 소스에 걸친 11개 검색 함수 |
 | `tools.py` | 417 | 날씨(기상청) / 번역(파파고) / 지오코딩(네이버지도) |
-| `nodes_chat.py` | 1,218 | 일반 채팅, 코드 모드, 동적 HITL, 코드 자기수정 노드 |
-| `nodes_research.py` | 3,000 | 딥리서치 파이프라인 11개 노드 (전 노드 게이트웨이 통합) |
-| `agent_mvp.py` | 254 | 모듈 재수출 + StateGraph 조립 (19노드, 조건부 에지) |
+| `nodes_chat.py` | 1,156 | 일반 채팅, 코드 모드, 질의 분류기, 동적 HITL 노드 |
+| `nodes_research.py` | 3,401 | 딥리서치 파이프라인 (11개 노드, 전 노드 게이트웨이 통합) |
+| `nodes_company.py` | 491 | 기업 추출 + 검증 노드 (BD 프로필) |
+| `research_cache.py` | 798 | 리서치 세션 캐시, URL 신뢰도 추적, 자동 태깅 |
+| `company_store.py` | 791 | 기업 인텔리전스 DB + 다국적 커넥터 |
+| `company_connectors/` | 1,362 | DART(한국), EDGAR(미국), EDINET(일본), 웹 보강 |
+| `law_rag.py` | 1,440 | 한국법 RAG (벡터 + BM25 하이브리드, 조문 단위 청킹) |
+| `tag_enums.py` | 304 | 리서치 태그 분류 시스템 |
+| `agent_mvp.py` | 304 | 모듈 재수출 + StateGraph 조립 (24노드, 조건부 에지) |
 
 ### 4. 모듈 의존성 다이어그램
 
@@ -167,8 +191,11 @@ graph BT
     llm --> research
     search --> research
     utils --> research
-    chat --> agent["agent_mvp.py (254줄)"]
+    llm --> company["nodes_company.py"]
+    research --> company
+    chat --> agent["agent_mvp.py (304줄)"]
     research --> agent
+    company --> agent
 ```
 
 ### 듀얼 배포
@@ -206,7 +233,7 @@ flowchart LR
     CC["Code Chat"] --> CF{"Code Fact Check"}
     CF -->|PASS / WARNING| END(("END"))
     CF -->|ISSUES_FOUND| FIX["Code Fix"]
-    FIX -->|재검증 (최대 2회)| CF
+    FIX -->|"재검증 (최대 2회)"| CF
 ```
 
 - **Code Fact Check**: 생성된 코드에서 라이브러리/API를 추출 → 공식 문서 + GitHub 검색으로 실제 존재 여부 검증
@@ -230,19 +257,74 @@ flowchart LR
 
 ### 3. LLM Gateway 통합
 
-모든 노드(11개 딥리서치 + 채팅 + 코드)의 LLM 호출을 `ask_gemini*()` 게이트웨이 4개 함수로 통합:
+모든 노드(14개 딥리서치 + 채팅 + 코드)의 LLM 호출을 `ask_gemini*()` 게이트웨이 4개 함수로 통합:
 
 | 함수 | 용도 |
 |------|------|
-| `ask_gemini()` | 일반 텍스트 응답 |
-| `ask_gemini_json()` | JSON 구조화 응답 |
-| `ask_gemini_high()` | Pro 모델 우선 (Flash 폴백) |
-| `ask_gemini_high_json()` | Pro + JSON |
+| `ask_gemini()` | 일반 텍스트 응답 (Flash) |
+| `ask_gemini_json()` | JSON 구조화 응답 (Flash) |
+| `ask_gemini_high()` | 판단/평가 노드용 (Flash, 벤치마크 검증 완료) |
+| `ask_gemini_high_json()` | 판단/평가 + JSON (Flash) |
 
 **효과:**
 - `is_secure` 파라미터 하나로 전체 시스템의 Gemini ↔ Ollama 전환
 - 직접 `.invoke()` 호출 8건 제거 → 게이트웨이 경유로 일원화
 - 백엔드 교체 시 게이트웨이 내부만 수정 (확장점 문서화 완료)
+
+### 4. 질의 분류기 — 자동 리서치 프로파일링
+
+딥리서치 시작 전, 로컬 LLM이 질의를 7가지 리서치 유형 중 하나로 자동 분류:
+
+| 리서치 유형 | 설명 |
+|-----------|------|
+| `market_entry` | 신규 시장 진입 타당성 분석 |
+| `competitor_analysis` | 경쟁 환경 비교 분석 |
+| `company_profile` | 단일 기업 심층 분석 |
+| `market_size` | 시장 규모 및 성장 전망 |
+| `partnership` | 파트너십/M&A 기회 평가 |
+| `trend_analysis` | 산업 트렌드 및 기술 분석 |
+| `general_research` | 오픈 리서치 (기본값) |
+
+- **EXAONE 7B**(로컬) 사용 — 분류에 클라우드 비용 제로
+- 프론트엔드 오버라이드 지원: 사용자가 프로필을 수동 선택하면 분류기 바이패스
+
+### 5. 기업 인텔리전스 (BD 모드)
+
+BD 프로필 리서치에서 기업 데이터를 자동 추출 및 검증:
+
+```mermaid
+flowchart LR
+    PL["Planner"] -->|BD 프로필| CE["Company Extractor"]
+    CE -->|질의에서 추출| DB[("기업 DB<br/>DART / EDGAR / EDINET")]
+    DB --> CV["Company Verifier"]
+    CV -->|검증된 컨텍스트| WR["Writer"]
+```
+
+- **Company Extractor**: 질의에서 기업명 식별 → DART(한국), EDGAR(미국), EDINET(일본) 조회
+- **Company Verifier**: 다중 소스 교차 검증, 데이터 품질 점수 할당
+- **Writer 통합**: 검증된 기업 컨텍스트(매출, 투자, 제품)를 리포트 생성에 주입
+
+### 6. 리서치 캐시 & 세션 히스토리
+
+- **세션 캐시**: 각 리서치 실행마다 주제, 모드, 프로필, 상태 포함 세션 생성
+- **URL 신뢰도 캐시**: 크롤링된 URL의 도메인, 신뢰도 점수, 태그, HTTP 상태 캐싱
+- **자동 태깅**: 3단계 태그 시스템으로 소스 분류 (Official/Academic/News/Blog 등)
+- **리서치 스냅샷**: 동일 주제 반복 리서치 시 변화 감지 지원
+
+### 7. 벤치마크 기반 하이브리드 LLM 라우팅
+
+```
+우선순위: is_secure_mode > hybrid_mode > default(cloud)
+
+하이브리드 노드 라우팅:
+  _classify_query        → local (EXAONE)
+  _generate_search_query → local
+  search_checker         → local
+  generate_followup      → local
+  그 외 전부              → cloud (Gemini Flash)
+```
+
+벤치마크 스위트(`benchmark_hybrid.py`, `benchmark_writer.py`, `benchmark_nodes.py`)가 노드별 성능을 평가하여 라우팅 결정에 반영.
 
 ---
 
@@ -282,12 +364,12 @@ flowchart LR
 |------|------|------|
 | Python | 3.11 | 런타임 |
 | FastAPI | 0.128 | 비동기 REST API + SSE 스트리밍 |
-| LangGraph | 1.0.5 | StateGraph 워크플로우 (19노드, 조건부 에지) |
+| LangGraph | 1.0.5 | StateGraph 워크플로우 (24노드, 조건부 에지) |
 | LangChain | 1.2.0 | LLM 추상화 + 도구 통합 |
-| Gemini 2.5 | Flash / Pro | 클라우드 LLM (메인) |
+| Gemini 2.5 Flash | 단일 모델 | 클라우드 LLM (벤치마크 검증: Pro 대비 -4%, 2배 속도) |
 | Ollama + EXAONE 3.5 | 7.8B | 로컬 LLM (한국어 최적화, 보안 모드) |
 | Qwen 2.5 Coder | 7B | 로컬 코드 생성 모델 |
-| sentence-transformers | - | 임베딩 (all-MiniLM-L6-v2) |
+| sentence-transformers | - | 임베딩 (all-MiniLM-L6-v2 + ko-sroberta) |
 | Faster-Whisper | - | STT (음성 → 텍스트) |
 | pyannote.audio | 3.1+ | 화자 분리 (회의 모드) |
 | EasyOCR | 1.7 | 이미지 → 텍스트 (RAG 수집) |
@@ -313,10 +395,31 @@ flowchart LR
 | Tavily | 뉴스 + 학술 (폴백) |
 | DuckDuckGo | 무제한 범용 폴백 |
 | Semantic Scholar | 학술 논문 (인용 데이터) |
+| arXiv | 프리프린트 논문 (CS/AI/수학) |
 | GitHub API | 코드 저장소 검색 |
+| 법제처 API | 한국 법령 (law.go.kr) |
 | 기상청 API | 날씨 (Lambert 정각원추도법 격자 변환) |
 | 네이버 Papago | 번역 (한/영/일/중) |
 | 네이버 지도 | 지오코딩 (주소 → 좌표) |
+
+---
+
+## 테스트
+
+LLM 의존성 없이 핵심 로직을 검증하는 포괄적 테스트 스위트:
+
+```
+tests/
+├── conftest.py              # 무거운 의존성 mock 팩토리 (30+ 모듈)
+├── test_utils.py            # clean_text, parse_json, trust_score (17개 테스트)
+├── test_models.py           # Pydantic 모델 검증 (7개 테스트)
+├── test_fix_reference.py    # URL 참조 보정 (8개 테스트)
+├── test_formatters.py       # 기업/세션 포맷터 (12개 테스트)
+├── test_benchmark_evals.py  # 벤치마크 평가 함수 (23개 테스트)
+└── test_research_cache.py   # SQLite 캐시 CRUD + 세션 (10개 테스트)
+```
+
+**83+ 테스트**가 **1초 미만**에 통과.
 
 ---
 
@@ -330,6 +433,8 @@ flowchart LR
 | `/meeting/upload` | POST | 회의 오디오 → 화자 분리 + 요약 |
 | `/rag/upload` | POST | PDF/이미지 RAG 수집 |
 | `/rag/search` | GET | 벡터 유사도 검색 |
+| `/law/crawl` | POST | 법제처 크롤링 |
+| `/law/search` | GET | 법률 검색 (Vector + BM25 하이브리드) |
 | `/tools/weather` | GET | 날씨 (기상청 API) |
 | `/tools/translate` | POST | 번역 (파파고) |
 | `/tools/geocode` | GET | 주소 → 좌표 (네이버 지도) |
@@ -340,7 +445,7 @@ flowchart LR
 
 ### LangGraph StateGraph를 선택한 이유
 
-ReAct 에이전트는 도구를 동적으로 선택하는 강점이 있지만, 19노드 워크플로우에는 **결정론적 라우팅**이 필수:
+ReAct 에이전트는 도구를 동적으로 선택하는 강점이 있지만, 24노드 워크플로우에는 **결정론적 라우팅**이 필수:
 - 보장된 실행 순서 (검색 → 평가 → 작성)
 - 조건부 분기 + 재시도 로직 (Evaluator → Strategist → Miner, 최대 3회)
 - 에이전틱 루프: 코드 모드 자기수정 (code_fact_check ↔ code_fix, 최대 2회)
