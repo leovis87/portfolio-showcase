@@ -30,6 +30,17 @@ The project includes a **comprehensive test suite** (83+ unit tests) covering co
 
 ---
 
+## Challenges We Solve
+
+- 📊 Daily market research and competitor analysis takes too much time
+- 🔁 Support teams answer the same questions repeatedly
+- 🔍 Internal document search is clunky — the right information never comes up fast enough
+- 📝 You want to automate report generation, but there's no in-house engineer
+
+**AI Secretary automates these challenges with AI.**
+
+---
+
 ## Key Features
 
 ### General Chat
