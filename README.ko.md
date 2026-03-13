@@ -569,9 +569,9 @@ mock 전략은 `types.ModuleType`에 `__path__`, `__spec__`, `__package__` 속�
 
 ## 데모
 
-> 스크린샷과 데모 영상은 추가 예정입니다.
+▶️ **[시연 영상 (ver.1)](https://youtu.be/X5ZZsArnIgI?si=ae8kjMtiSfXRFhZd)** — Deep Research 파이프라인 전체 실행 과정
 
-*근일 공개: 일반 채팅, 딥리서치 파이프라인, 코드 모드 라이브 데모 GIF.*
+*추가 데모 GIF (일반 채팅, 코드 모드) 근일 공개 예정.*
 
 ---
 

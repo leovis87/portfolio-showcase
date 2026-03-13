@@ -570,14 +570,9 @@ The mock strategy uses `types.ModuleType` with proper `__path__`, `__spec__`, `_
 
 ## Demo
 
-> Screenshots and demo recordings will be added here.
+▶️ **[Demo Video (ver.1)](https://youtu.be/X5ZZsArnIgI?si=ae8kjMtiSfXRFhZd)** — Deep Research pipeline end-to-end walkthrough
 
-<!--
-![General Chat Demo](./assets/demo-general.gif)
-![Deep Research Demo](./assets/demo-research.gif)
--->
-
-*Coming soon: Live demo GIFs showcasing General Chat, Deep Research pipeline, and Code mode.*
+*Additional demo GIFs (General Chat, Code mode) coming soon.*
 
 ---
 
